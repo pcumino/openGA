@@ -1,4 +1,6 @@
-#include <iostream>
+#include <string>
+#include "genetic.hpp"
+#include <fstream>
 
 using namespace std;
 
