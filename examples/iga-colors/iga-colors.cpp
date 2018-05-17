@@ -87,8 +87,6 @@ MyGenes crossover(
 
 void calculate_IGA_total_fitness(GA_Type::thisGenerationType &g)
 {
-
-
 	for(uint i=0;i<g.chromosomes.size();i++)
 	{
 		GA_Type::thisChromosomeType &X=g.chromosomes[i];
