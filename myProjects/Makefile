@@ -18,8 +18,9 @@ all:
 	@echo "***********************************************"
 
 main:
+	@clear
 	$(CXX) $(CURRENT_FLAGS) main.cc -o $(BIN)/main $(LIBS)
-	@echo "-----------------------------------------------"
-	@echo "RUNNING PROGRAM..."
-	@echo ""
+	@echo "--------------------------------"
+	@echo "\tRUNNING PROGRAM"
+	@echo "--------------------------------"
 	$(BIN)/main
