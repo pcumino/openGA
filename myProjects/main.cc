@@ -39,10 +39,17 @@ bool eval_genes(
 	const MyGenes& p,
 	MyMiddleCost &c)
 {
-	c.X=p.X;
-	c.Y=p.Y;
-	c.Z=p.Z;
-	return true; // genes are accepted
+	double x = p.X, y = p.Y, z = p.Z;
+	double n = x+y+z;
+	if(n >= 9 && n < 10){
+		c.X = x;
+		c.Y = y;
+		c.Z = z;
+		return true;
+	}
+	else{
+		return false; // genes are accepted
+	}
 }
 
 
@@ -90,8 +97,8 @@ double calculate_SO_total_fitness(const GA_Type::thisChromosomeType &X)
 	costY=X.middle_costs.Y;
 	costZ=X.middle_costs.Z;
 
-	cout << "calculate_SO_total_fitness:" << " "; 
-	cout << costX+costY+costZ << endl; 
+	// cout << "calculate_SO_total_fitness:" << " "; 
+	// cout << costX+costY+costZ << endl; 
 	return costX+costY+costZ;
 }
 
@@ -127,9 +134,9 @@ void SO_report_generation(
 }
 
 int main(int argc, char const *argv[]){
-	cout << "Hello world!" << endl;
-	for (int i = 0; i < argc; ++i)
-		cout << argv[i] << endl;
+	// cout << "Hello world!" << endl;
+	// for (int i = 0; i < argc; ++i)
+	// 	cout << argv[i] << endl;
 	
 	// output_file.open("./bin/result_so-rastrigin.txt");
 	output_file.open("../myBin/main.txt");
@@ -152,8 +159,10 @@ int main(int argc, char const *argv[]){
 	ga_obj.dynamic_threading=false;
 	ga_obj.idle_delay_us=0; // switch between threads quickly
 	ga_obj.verbose=false;
-	ga_obj.population=5;
-	ga_obj.generation_max=5;
+
+	ga_obj.population=100;
+	ga_obj.generation_max=1000;
+
 	ga_obj.calculate_SO_total_fitness=calculate_SO_total_fitness;
 	ga_obj.init_genes=init_genes;
 	ga_obj.eval_genes=eval_genes;
@@ -172,7 +181,5 @@ int main(int argc, char const *argv[]){
 	std::cout<<"The problem is optimized in "<<timer.toc()<<" seconds."<<std::endl;
 
 	output_file.close();
-	return 0;
-
 	return 0;
 }
