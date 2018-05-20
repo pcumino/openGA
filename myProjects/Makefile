@@ -24,3 +24,4 @@ main:
 	@echo "\tRUNNING PROGRAM"
 	@echo "--------------------------------"
 	$(BIN)/main
+	@cat $(BIN)/main-result.txt

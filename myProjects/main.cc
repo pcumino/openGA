@@ -1,27 +1,32 @@
+// This library is free and distributed under
+// Mozilla Public License Version 2.0.
+
 #include <string>
-#include "genetic.hpp"
+#include <iostream>
 #include <fstream>
-
-using namespace std;
-
+#include <math.h>
+#include "genetic.hpp"
 
 struct MyGenes
 {
-	double X,Y,Z;
+	double x;
+	// double y;
 
 	std::string to_string() const
 	{
 		return 
-			"{x:"+std::to_string(X)+
-		    ",y:"+std::to_string(Y)+
-			",z:"+std::to_string(Z)+
+			"{x:"+std::to_string(x)+
+			// ", y:"+std::to_string(y)+
 			"}";
 	}
 };
 
 struct MyMiddleCost
 {
-	double X,Y,Z;
+	// This is where the results of simulation
+	// is stored but not yet finalized.
+	double cost_A;
+	double cost_B;
 };
 
 typedef EA::Genetic<MyGenes,MyMiddleCost> GA_Type;
@@ -29,48 +34,48 @@ typedef EA::GenerationType<MyGenes,MyMiddleCost> Generation_Type;
 
 void init_genes(MyGenes& p,const std::function<double(void)> &rand)
 {
-	p.X=10*rand();
-	p.Y=10*rand();
-	p.Z=10*rand();
+	p.x=10.0*rand();
+	// p.y=10.0*rand();
 }
-
 
 bool eval_genes(
 	const MyGenes& p,
 	MyMiddleCost &c)
 {
-	double x = p.X, y = p.Y, z = p.Z;
-	double n = x+y+z;
-	if(n >= 9 && n < 10){
-		c.X = x;
-		c.Y = y;
-		c.Z = z;
-		return true;
-	}
-	else{
-		return false; // genes are accepted
-	}
+	double x=p.x;
+	c.cost_A = pow((x+2),2);
+	c.cost_A -= 10;
+	c.cost_B = pow((x-2),2);
+	c.cost_B += 20;
+	return true; // genes are accepted
 }
-
 
 MyGenes mutate(
 	const MyGenes& X_base,
 	const std::function<double(void)> &rand,
 	double shrink_scale)
 {
-	MyGenes New_gene;
-	(void) shrink_scale;
-	bool in_range_X,in_range_Y,in_range_Z;
+	MyGenes X_new;
+	double loca_scale=shrink_scale;
+	if(rand()<0.4)
+		loca_scale*=loca_scale;
+	else if(rand()<0.1)
+		loca_scale=1.0;
+	bool in_range_x,in_range_y;
+	double local_scale=shrink_scale;
+	if(rand()<0.4)
+		local_scale*=local_scale;
+	else if(rand()<0.1)
+		local_scale=1.0;
 	do{
-		New_gene=X_base;
-		New_gene.X+=10*(rand()-rand());
-		New_gene.Y+=10*(rand()-rand());
-		New_gene.Z+=10*(rand()-rand());
-		in_range_X= (New_gene.X>=0.0 && New_gene.X<200.0);
-		in_range_Y= (New_gene.Y>=0.0 && New_gene.Y<200.0);
-		in_range_Z= (New_gene.Z>=0.0 && New_gene.Z<200.0);
-	} while(!in_range_X || !in_range_Y || !in_range_Z);
-	return New_gene;
+		X_new=X_base;
+		X_new.x+=0.2*(rand()-rand())*local_scale;
+		// X_new.y+=0.2*(rand()-rand())*local_scale;
+		in_range_x= (X_new.x>=0.0 && X_new.x<10.0);
+		// in_range_y= (X_new.y>=0.0 && X_new.y<10.0);
+	// } while(!in_range_x || !in_range_y);
+	} while(!in_range_x);
+	return X_new;
 }
 
 MyGenes crossover(
@@ -78,108 +83,94 @@ MyGenes crossover(
 	const MyGenes& X2,
 	const std::function<double(void)> &rand)
 {
-	MyGenes New_gene;
+	MyGenes X_new;
 	double r;
 	r=rand();
-	New_gene.X=r*X1.X+(1.0-r)*X2.X;
+	X_new.x=r*X1.x+(1.0-r)*X2.x;
 	r=rand();
-	New_gene.Y=r*X1.Y+(1.0-r)*X2.Y;
-	r=rand();
-	New_gene.Z=r*X1.Z+(1.0-r)*X2.Z;
-	return New_gene;
+	// X_new.y=r*X1.y+(1.0-r)*X2.y;
+	return X_new;
 }
 
-double calculate_SO_total_fitness(const GA_Type::thisChromosomeType &X)
+std::vector<double> calculate_MO_objectives(const GA_Type::thisChromosomeType &X)
 {
-	// finalize the cost
-	double costX,costY,costZ;
-	costX=X.middle_costs.X;
-	costY=X.middle_costs.Y;
-	costZ=X.middle_costs.Z;
-
-	// cout << "calculate_SO_total_fitness:" << " "; 
-	// cout << costX+costY+costZ << endl; 
-	return costX+costY+costZ;
+	return {
+		X.middle_costs.cost_A,
+		X.middle_costs.cost_B
+	};
 }
 
-std::ofstream output_file;
+std::vector<double> distribution_objective_reductions(const std::vector<double> &objs)
+{
+	return objs;
+}
 
-void SO_report_generation(
+void MO_report_generation(
 	int generation_number,
 	const EA::GenerationType<MyGenes,MyMiddleCost> &last_generation,
-	const MyGenes& best_genes)
+	const std::vector<uint>& pareto_front)
 {
-	std::cout
-		<<"Generation ["<<generation_number<<"], "
-		<<"Best="<<last_generation.best_total_cost<<", "
-		<<"Average="<<last_generation.average_cost<<", "
-		<<"Best genes=("<<best_genes.to_string()<<")"<<", "
-		<<"Exe_time="<<last_generation.exe_time
-		<<std::endl;
+	(void) last_generation;
 
-	// output_file
-	// 	<<generation_number<<"\t"
-	// 	<<best_genes.to_string()<<"\t"
-	// 	<<100.0-last_generation.average_cost<<"\t"
-	// 	<<100.0-last_generation.best_total_cost<<"\n";
-	output_file
-		<<generation_number<<"\t"
-		<<"{"
-		<<best_genes.X<<","
-		<<best_genes.Y<<","
-		<<best_genes.Z<<""
-		<<"}\t"
-		<<last_generation.average_cost<<"\t"
-		<<last_generation.best_total_cost<<"\n";
+	std::cout<<"Generation ["<<generation_number<<"], ";
+	std::cout<<"Pareto-Front {";
+	for(uint i=0;i<pareto_front.size();i++)
+	{
+		std::cout<<(i>0?",":"");
+		std::cout<<pareto_front[i];
+	}
+	std::cout<<"}"<<std::endl;
 }
 
-int main(int argc, char const *argv[]){
-	// cout << "Hello world!" << endl;
-	// for (int i = 0; i < argc; ++i)
-	// 	cout << argv[i] << endl;
-	
-	// output_file.open("./bin/result_so-rastrigin.txt");
-	output_file.open("../myBin/main.txt");
-	output_file
-		<<"step"
-		<<"\t"
-		<<"position_best"
-		<<"\t"
-		<<"cost_avg"
-		<<"\t"
-		<<"cost_best"
-		<<"\n";
+void save_results(const GA_Type &ga_obj)
+{
+	std::ofstream output_file;
+	// output_file.open("../myBin/main.txt");
+	output_file.open("../myBin/main-result.txt");
+	// output_file<<"N"<<"\t"<<"x"<<"\t"<<"y"<<"\t"<<"cost1"<<"\t"<<"cost2"<<"\n";
+	output_file<<"N"<<"\t"<<"x"<<"\t"<<"cost1"<<"\t"<<"cost2"<<"\n";
+	std::vector<uint> paretofront_indices=ga_obj.last_generation.fronts[0];
+	for(uint i:paretofront_indices)
+	{
+		const auto &X=ga_obj.last_generation.chromosomes[i];
+		output_file
+			<<i<<"\t"
+			<<X.genes.x<<"\t"
+			// <<X.genes.y<<"\t"
+			<<X.middle_costs.cost_A<<"\t"
+			<<X.middle_costs.cost_B<<"\n";
 
+	}
+	output_file.close();
+}
+
+int main()
+{
 	EA::Chronometer timer;
 	timer.tic();
 
 	GA_Type ga_obj;
-	ga_obj.problem_mode=EA::GA_MODE::SOGA;
+	ga_obj.problem_mode= EA::GA_MODE::NSGA_III;
 	ga_obj.multi_threading=true;
-	ga_obj.dynamic_threading=false;
-	ga_obj.idle_delay_us=0; // switch between threads quickly
+	ga_obj.idle_delay_us=1; // switch between threads quickly
 	ga_obj.verbose=false;
-
-	ga_obj.population=100;
-	ga_obj.generation_max=1000;
-
-	ga_obj.calculate_SO_total_fitness=calculate_SO_total_fitness;
+	
+	ga_obj.population=20;
+	ga_obj.generation_max=100;
+	
+	ga_obj.calculate_MO_objectives= calculate_MO_objectives;
 	ga_obj.init_genes=init_genes;
 	ga_obj.eval_genes=eval_genes;
+	ga_obj.distribution_objective_reductions=distribution_objective_reductions;
 	ga_obj.mutate=mutate;
 	ga_obj.crossover=crossover;
-	ga_obj.SO_report_generation=SO_report_generation;
-	ga_obj.best_stall_max=20;
-	ga_obj.average_stall_max=20;
-	ga_obj.tol_stall_best=1e-6;
-	ga_obj.tol_stall_average=1e-6;
-	ga_obj.elite_count=1;
-	ga_obj.crossover_fraction=0.75;
-	ga_obj.mutation_rate=0.05;
+	ga_obj.MO_report_generation=MO_report_generation;
+	ga_obj.crossover_fraction=0.7;
+	ga_obj.mutation_rate=0.4;
 	ga_obj.solve();
 
 	std::cout<<"The problem is optimized in "<<timer.toc()<<" seconds."<<std::endl;
 
-	output_file.close();
+	save_results(ga_obj);
 	return 0;
 }

@@ -49,6 +49,8 @@ RUN apt-get install -y make
 RUN apt-get install -y g++
 RUN apt-get install -y libboost-all-dev
 RUN apt-get install -y libboost-thread-dev
+RUN apt-get install -y nano
+RUN apt-get install -y tree
 
 WORKDIR /home/
 ADD myBin ./myBin

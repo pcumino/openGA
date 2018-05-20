@@ -27,6 +27,7 @@ ex_so1:
 	$(CXX) $(CURRENT_FLAGS) examples/so-1/example_so1.cpp -o $(BIN)/example_so1 $(LIBS)
 	@echo "-----------------------------------------------"
 	$(BIN)/example_so1
+	@cat $(BIN)/result_so1.txt
 
 ex_so_rastrigin:
 	$(CXX) $(CURRENT_FLAGS) examples/so-rastrigin/so-rastrigin.cpp -o $(BIN)/example_so-rastrigin $(LIBS)
