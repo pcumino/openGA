@@ -10,13 +10,13 @@
 struct MyGenes
 {
 	double x;
-	// double y;
+	double y;
 
 	std::string to_string() const
 	{
 		return 
 			"{x:"+std::to_string(x)+
-			// ", y:"+std::to_string(y)+
+			", y:"+std::to_string(y)+
 			"}";
 	}
 };
@@ -35,7 +35,7 @@ typedef EA::GenerationType<MyGenes,MyMiddleCost> Generation_Type;
 void init_genes(MyGenes& p,const std::function<double(void)> &rand)
 {
 	p.x=10.0*rand();
-	// p.y=10.0*rand();
+	p.y=10.0*rand();
 }
 
 bool eval_genes(
@@ -70,11 +70,10 @@ MyGenes mutate(
 	do{
 		X_new=X_base;
 		X_new.x+=0.2*(rand()-rand())*local_scale;
-		// X_new.y+=0.2*(rand()-rand())*local_scale;
+		X_new.y+=0.2*(rand()-rand())*local_scale;
 		in_range_x= (X_new.x>=0.0 && X_new.x<10.0);
-		// in_range_y= (X_new.y>=0.0 && X_new.y<10.0);
-	// } while(!in_range_x || !in_range_y);
-	} while(!in_range_x);
+		in_range_y= (X_new.y>=0.0 && X_new.y<10.0);
+	} while(!in_range_x || !in_range_y);
 	return X_new;
 }
 
@@ -88,7 +87,7 @@ MyGenes crossover(
 	r=rand();
 	X_new.x=r*X1.x+(1.0-r)*X2.x;
 	r=rand();
-	// X_new.y=r*X1.y+(1.0-r)*X2.y;
+	X_new.y=r*X1.y+(1.0-r)*X2.y;
 	return X_new;
 }
 
@@ -125,10 +124,8 @@ void MO_report_generation(
 void save_results(const GA_Type &ga_obj)
 {
 	std::ofstream output_file;
-	// output_file.open("../myBin/main.txt");
 	output_file.open("../myBin/main-result.txt");
-	// output_file<<"N"<<"\t"<<"x"<<"\t"<<"y"<<"\t"<<"cost1"<<"\t"<<"cost2"<<"\n";
-	output_file<<"N"<<"\t"<<"x"<<"\t"<<"cost1"<<"\t"<<"cost2"<<"\n";
+	output_file<<"N"<<"\t"<<"x"<<"\t"<<"y"<<"\t"<<"cost1"<<"\t"<<"cost2"<<"\n";
 	std::vector<uint> paretofront_indices=ga_obj.last_generation.fronts[0];
 	for(uint i:paretofront_indices)
 	{
@@ -136,7 +133,7 @@ void save_results(const GA_Type &ga_obj)
 		output_file
 			<<i<<"\t"
 			<<X.genes.x<<"\t"
-			// <<X.genes.y<<"\t"
+			<<X.genes.y<<"\t"
 			<<X.middle_costs.cost_A<<"\t"
 			<<X.middle_costs.cost_B<<"\n";
 
