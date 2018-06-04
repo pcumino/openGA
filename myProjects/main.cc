@@ -43,10 +43,12 @@ bool eval_genes(
 	MyMiddleCost &c)
 {
 	double x=p.x;
-	c.cost_A = pow((x+2),2);
+
+	c.cost_A = -pow((x+2),2);
 	c.cost_A -= 10;
 	c.cost_B = pow((x-2),2);
 	c.cost_B += 20;
+
 	return true; // genes are accepted
 }
 
@@ -97,6 +99,7 @@ std::vector<double> calculate_MO_objectives(const GA_Type::thisChromosomeType &X
 		X.middle_costs.cost_A,
 		X.middle_costs.cost_B
 	};
+
 }
 
 std::vector<double> distribution_objective_reductions(const std::vector<double> &objs)
@@ -109,16 +112,16 @@ void MO_report_generation(
 	const EA::GenerationType<MyGenes,MyMiddleCost> &last_generation,
 	const std::vector<uint>& pareto_front)
 {
-	(void) last_generation;
+	// (void) last_generation;
 
-	std::cout<<"Generation ["<<generation_number<<"], ";
-	std::cout<<"Pareto-Front {";
-	for(uint i=0;i<pareto_front.size();i++)
-	{
-		std::cout<<(i>0?",":"");
-		std::cout<<pareto_front[i];
-	}
-	std::cout<<"}"<<std::endl;
+	// std::cout<<"Generation ["<<generation_number<<"], ";
+	// std::cout<<"Pareto-Front {";
+	// for(uint i=0;i<pareto_front.size();i++)
+	// {
+	// 	std::cout<<(i>0?",":"");
+	// 	std::cout<<pareto_front[i];
+	// }
+	// std::cout<<"}"<<std::endl;
 }
 
 void save_results(const GA_Type &ga_obj)
@@ -152,7 +155,7 @@ int main()
 	ga_obj.idle_delay_us=1; // switch between threads quickly
 	ga_obj.verbose=false;
 	
-	ga_obj.population=20;
+	ga_obj.population=50;
 	ga_obj.generation_max=100;
 	
 	ga_obj.calculate_MO_objectives= calculate_MO_objectives;
@@ -162,8 +165,9 @@ int main()
 	ga_obj.mutate=mutate;
 	ga_obj.crossover=crossover;
 	ga_obj.MO_report_generation=MO_report_generation;
+
 	ga_obj.crossover_fraction=0.7;
-	ga_obj.mutation_rate=0.4;
+	ga_obj.mutation_rate=0.3;
 	ga_obj.solve();
 
 	std::cout<<"The problem is optimized in "<<timer.toc()<<" seconds."<<std::endl;
